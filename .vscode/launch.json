@@ -81,6 +81,24 @@
     {
       "type": "lldb",
       "request": "launch",
+      "name": "Debug example 'nes-tetris'",
+      "cargo": {
+        "args": [
+          "build",
+          "--example=nes-tetris",
+          "--package=brain"
+        ],
+        "filter": {
+          "name": "nes-tetris",
+          "kind": "example"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
       "name": "Debug unit tests in example 'xor'",
       "cargo": {
         "args": [

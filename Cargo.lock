@@ -212,6 +212,7 @@ dependencies = [
  "flamegraph",
  "fxhash",
  "gym-rs",
+ "nes_rust",
  "rand 0.9.0",
  "rand_distr",
  "rulinalg",
@@ -1340,6 +1341,10 @@ dependencies = [
  "quote",
  "syn 2.0.96",
 ]
+
+[[package]]
+name = "nes_rust"
+version = "0.1.2"
 
 [[package]]
 name = "normpath"

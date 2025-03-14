@@ -1,3 +1,4 @@
 /target
+.deps/*
 flamegraph*.svg
 perf.data*

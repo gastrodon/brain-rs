@@ -16,6 +16,7 @@ fxhash = "0.2.1"
 [features]
 gym = ["gym-rs"]
 smol_bench = []
+watch_game = []
 
 [[example]]
 name = "xor"
@@ -27,6 +28,7 @@ required-features = ["gym"]
 [dev-dependencies]
 criterion = "0.5.1"
 flamegraph = "0.6.7"
+nes_rust = { path = ".deps/nes-rust-takahirox" }
 
 [[bench]]
 name = "ctrnn"
