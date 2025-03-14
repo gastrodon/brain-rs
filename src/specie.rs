@@ -394,24 +394,13 @@ mod tests {
                 .fold(0, |acc, Specie { members, .. }| acc + members.len())
         );
         assert!(inno_head != 0);
-        assert_eq!(
-            inno_head - 1,
-            species
-                .iter()
-                .flat_map(|Specie { members, .. }| members)
-                .flat_map(|(Genome { connections, .. }, _)| connections
-                    .iter()
-                    .map(|Connection { inno, .. }| *inno))
-                .max()
-                .unwrap()
-        );
         for specie in species.iter() {
             assert_ne!(0, specie.len());
         }
         for (Genome { connections, .. }, fit) in
             species.iter().flat_map(|Specie { members, .. }| members)
         {
-            assert_ne!(0, connections.len());
+            assert_eq!(0, connections.len());
             assert_eq!(f64::MIN, *fit);
         }
     }

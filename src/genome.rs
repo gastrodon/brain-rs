@@ -80,25 +80,12 @@ impl Genome {
         }
         nodes.push(Node::Bias(1.));
 
-        let connections = (0..sensory)
-            .chain(once(sensory + action))
-            .flat_map(|from| (0..action).map(move |to| (from, to + sensory)))
-            .enumerate()
-            .map(|(inno, (from, to))| Connection {
-                inno,
-                from,
-                to,
-                weight: 1.,
-                enabled: true,
-            })
-            .collect();
-
         (
             Self {
                 sensory,
                 action,
                 nodes,
-                connections,
+                connections: vec![],
             },
             (sensory + 1) * action,
         )
@@ -189,7 +176,7 @@ impl Genome {
         if rng.random_bool(Self::MUTATE_CONNECTION_CHANCE) {
             self.mutate_connection(rng, innogen)?;
         }
-        if rng.random_bool(Self::MUTATE_BISECTION_CHANCE) {
+        if rng.random_bool(Self::MUTATE_BISECTION_CHANCE) && !self.connections.is_empty() {
             self.mutate_bisection(rng, innogen)?;
         }
 
@@ -276,16 +263,6 @@ mod test {
         assert!(matches!(genome.nodes[0], Node::Sensory));
         assert!(matches!(genome.nodes[3], Node::Action));
         assert!(matches!(genome.nodes[5], Node::Bias(_)));
-        assert_eq!(genome.connections.len(), 8);
-        assert_eq!(
-            *genome
-                .connections
-                .iter()
-                .map(|Connection { inno, .. }| inno)
-                .max()
-                .unwrap(),
-            genome.connections.len() - 1,
-        );
 
         let (genome_empty, inno_head) = Genome::new(0, 0);
         assert_eq!(inno_head, 0);
@@ -293,7 +270,6 @@ mod test {
         assert_eq!(genome_empty.action, 0);
         assert_eq!(genome_empty.nodes.len(), 1);
         assert!(matches!(genome_empty.nodes[0], Node::Bias(_)));
-        assert_eq!(genome_empty.connections.len(), 0);
 
         let (genome_only_sensory, inno_head) = Genome::new(3, 0);
         assert_eq!(inno_head, 0);
@@ -303,7 +279,6 @@ mod test {
         assert!(matches!(genome_only_sensory.nodes[0], Node::Sensory));
         assert!(matches!(genome_only_sensory.nodes[2], Node::Sensory));
         assert!(matches!(genome_only_sensory.nodes[3], Node::Bias(_)));
-        assert_eq!(genome_only_sensory.connections.len(), 0);
 
         let (genome_only_action, inno_head) = Genome::new(0, 3);
         assert_eq!(inno_head, 3);
@@ -313,7 +288,6 @@ mod test {
         assert!(matches!(genome_only_action.nodes[0], Node::Action));
         assert!(matches!(genome_only_action.nodes[2], Node::Action));
         assert!(matches!(genome_only_action.nodes[3], Node::Bias(_)));
-        assert_eq!(genome_only_action.connections.len(), 3);
     }
 
     #[test]
