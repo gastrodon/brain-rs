@@ -188,7 +188,7 @@ const POPULATION: usize = 100;
 
 fn main() {
     let res = NesTetris {}.evolve(
-        EvolutionTarget::Generation(10),
+        EvolutionTarget::Fitness(60.),
         |(i, o)| population_init(i, o, POPULATION),
         POPULATION,
         relu,
@@ -197,10 +197,18 @@ fn main() {
     println!(
         "top score: {:?}",
         res.0
-            .into_iter()
+            .iter()
             .flat_map(|Specie { members, .. }| members)
             .max_by(|(_, l), (_, r)| l.partial_cmp(r).unwrap())
             .unwrap()
             .1
     );
+
+    for (idx, specie) in res.0.iter().enumerate() {
+        for (g_idx, (genome, fitness)) in specie.members.iter().enumerate() {
+            genome
+                .to_file(format!("genome/{idx}-{g_idx}-fit-{}", *fitness as usize))
+                .unwrap();
+        }
+    }
 }

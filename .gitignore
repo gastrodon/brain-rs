@@ -1,3 +1,4 @@
+/genome
 /target
 .deps/*
 flamegraph*.svg
