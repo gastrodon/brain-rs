@@ -1,0 +1,8 @@
+target/*
+.deps/*
+flamegraph*.svg
+perf.data*
+.git
+profile
+cmp-bench
+README.md
