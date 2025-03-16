@@ -1,4 +1,8 @@
-use crate::{crossover::crossover, specie::InnoGen};
+use crate::{
+    crossover::crossover,
+    random::{CHANCE_MUTATE_BISECTION, CHANCE_MUTATE_CONNECTION, CHANCE_MUTATE_WEIGHT},
+    specie::InnoGen,
+};
 use core::{
     cmp::{max, Ordering},
     error::Error,
@@ -66,9 +70,6 @@ impl Genome {
 
 impl Genome {
     const MUTATE_WEIGHT_FAC: f64 = 0.05;
-    const MUTATE_WEIGHT_CHANCE: f64 = 0.8;
-    const MUTATE_CONNECTION_CHANCE: f64 = 0.03;
-    const MUTATE_BISECTION_CHANCE: f64 = 0.05;
 
     pub fn new(sensory: usize, action: usize) -> (Self, usize) {
         let mut nodes = Vec::with_capacity(sensory + action + 1);
@@ -170,13 +171,13 @@ impl Genome {
         rng: &mut ThreadRng,
         innogen: &mut InnoGen,
     ) -> Result<(), Box<dyn Error>> {
-        if rng.random_bool(Self::MUTATE_WEIGHT_CHANCE) {
+        if rng.random_bool(CHANCE_MUTATE_WEIGHT) {
             self.mutate_weights(rng);
         }
-        if rng.random_bool(Self::MUTATE_CONNECTION_CHANCE) {
+        if rng.random_bool(CHANCE_MUTATE_CONNECTION) {
             self.mutate_connection(rng, innogen)?;
         }
-        if rng.random_bool(Self::MUTATE_BISECTION_CHANCE) && !self.connections.is_empty() {
+        if rng.random_bool(CHANCE_MUTATE_BISECTION) && !self.connections.is_empty() {
             self.mutate_bisection(rng, innogen)?;
         }
 

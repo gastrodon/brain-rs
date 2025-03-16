@@ -1,4 +1,7 @@
-use crate::genome::Connection;
+use crate::{
+    genome::Connection,
+    random::{CHANCE_KEEP_DISABLED, CHANCE_NEW_DISABLED, CHANCE_PICK_L_EQ},
+};
 use core::cmp::Ordering;
 use rand::{rngs::ThreadRng, Rng};
 
@@ -133,10 +136,6 @@ pub fn delta(l: &[Connection], r: &[Connection]) -> f64 {
     }
 }
 
-const CHANCE_PICK_LR: f64 = 0.5;
-const CHANCE_KEEP_DISABLED: f64 = 0.75;
-const CHANCE_RAND_DISABLED: f64 = 0.01;
-
 #[inline]
 fn pick_gene(
     base_conn: &Connection,
@@ -144,7 +143,7 @@ fn pick_gene(
     rng: &mut ThreadRng,
 ) -> Connection {
     let mut conn = if let Some(r_conn) = opt_conn {
-        (*if rng.random_bool(CHANCE_PICK_LR) {
+        (*if rng.random_bool(CHANCE_PICK_L_EQ) {
             r_conn
         } else {
             base_conn
@@ -159,7 +158,7 @@ fn pick_gene(
     // RAND_DISABLED% of checks that would then check KEEP_DISABLED?
     if ((!base_conn.enabled || opt_conn.is_some_and(|r_conn| !r_conn.enabled))
         && rng.random_bool(CHANCE_KEEP_DISABLED))
-        || rng.random_bool(CHANCE_RAND_DISABLED)
+        || rng.random_bool(CHANCE_NEW_DISABLED)
     {
         conn.enabled = false;
     }
