@@ -1,7 +1,6 @@
-use brain::random::{rng_rngcore, rng_wyhash};
+use brain::random::{rng_rngcore, rng_wyhash, seed_urandom};
 use criterion::Criterion;
 use rand::rng;
-use std::{fs::File, io::Read};
 
 fn bench_rngcore(bench: &mut Criterion) {
     bench.bench_function("random-rngcore", |b| {
@@ -11,14 +10,7 @@ fn bench_rngcore(bench: &mut Criterion) {
 }
 
 fn bench_wyhash(bench: &mut Criterion) {
-    let seed = {
-        let mut file = File::open("/dev/urandom").unwrap();
-        let mut buffer = [0u8; 8];
-        file.read_exact(&mut buffer).unwrap();
-        u64::from_le_bytes([
-            buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7],
-        ])
-    };
+    let seed = seed_urandom().unwrap();
 
     bench.bench_function("random-wyhash", |b| {
         let next_u64 = rng_wyhash(seed);

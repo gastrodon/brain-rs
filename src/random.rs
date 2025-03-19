@@ -1,4 +1,8 @@
 use rand::RngCore;
+use std::{
+    fs::File,
+    io::{self, Read},
+};
 
 pub const CHANCE_MUTATE_CONNECTION: f64 = 0.03;
 pub const CHANCE_MUTATE_BISECTION: f64 = 0.05;
@@ -49,6 +53,15 @@ pub fn with_probabilities<P: Fn(EvolutionEvent) -> u64, R: FnMut() -> u64>(
     move |evt| prob(evt) > next_u64()
 }
 
+pub fn seed_urandom() -> io::Result<u64> {
+    let mut file = File::open("/dev/urandom")?;
+    let mut buffer = [0u8; 8];
+    file.read_exact(&mut buffer)?;
+    Ok(u64::from_le_bytes([
+        buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6], buffer[7],
+    ]))
+}
+
 pub fn rng_rngcore(rng: impl RngCore) -> impl FnMut() -> u64 {
     let mut rng = rng;
     move || rng.next_u64()
@@ -70,8 +83,6 @@ mod test {
     use super::*;
     use core::iter::once;
     use rand::rng;
-    use std::fs::File;
-    use std::io::Read;
 
     fn assert_within_deviation(
         evt: EvolutionEvent,
@@ -120,15 +131,7 @@ mod test {
 
     #[test]
     fn test_deviation_wyrand() {
-        let seed = {
-            let mut file = File::open("/dev/urandom").unwrap();
-            let mut buffer = [0u8; 8];
-            file.read_exact(&mut buffer).unwrap();
-            u64::from_le_bytes([
-                buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], buffer[5], buffer[6],
-                buffer[7],
-            ])
-        };
+        let seed = seed_urandom().unwrap();
         for (evt, chance) in [
             (EvolutionEvent::MutateConnection, CHANCE_MUTATE_CONNECTION),
             (EvolutionEvent::MutateBisection, CHANCE_MUTATE_BISECTION),
