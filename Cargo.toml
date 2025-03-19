@@ -65,5 +65,9 @@ name = "innogen"
 harness = false
 
 [[bench]]
+name = "random"
+harness = false
+
+[[bench]]
 name = "xor-100"
 harness = false

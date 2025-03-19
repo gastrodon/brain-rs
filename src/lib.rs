@@ -4,6 +4,7 @@
 pub mod crossover;
 pub mod genome;
 pub mod network;
+pub mod random;
 pub mod scenario;
 pub mod specie;
 
