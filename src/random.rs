@@ -1,4 +1,4 @@
-use rand::{rng, RngCore};
+use rand::{rngs::SmallRng, RngCore, SeedableRng};
 use std::{
     fs::File,
     io::{self, Read},
@@ -79,7 +79,7 @@ pub fn rng_wyhash(seed: u64) -> impl FnMut() -> u64 {
 }
 
 pub fn default_rng() -> impl RngCore {
-    rng()
+    SmallRng::seed_from_u64(seed_urandom().unwrap())
 }
 
 #[cfg(test)]
