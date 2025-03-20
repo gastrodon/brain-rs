@@ -1,7 +1,7 @@
-use brain::crossover::crossover;
+use brain::{crossover::crossover, random::default_rng};
 use core::cmp::Ordering;
 use criterion::Criterion;
-use rand::rng;
+
 fn bench(bench: &mut Criterion) {
     let l_conn =
         serde_json::from_str::<Vec<_>>(include_str!("data/connection-rand-l.json")).unwrap();
@@ -9,7 +9,7 @@ fn bench(bench: &mut Criterion) {
         serde_json::from_str::<Vec<_>>(include_str!("data/connection-rand-r.json")).unwrap();
 
     bench.bench_function("crossover-ne", |b| {
-        b.iter(|| crossover(&l_conn, &r_conn, Ordering::Greater, &mut rng()))
+        b.iter(|| crossover(&l_conn, &r_conn, Ordering::Greater, &mut default_rng()))
     });
 }
 

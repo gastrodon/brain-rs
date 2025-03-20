@@ -9,7 +9,7 @@ use core::{
     hash::Hash,
     iter::once,
 };
-use rand::{rngs::ThreadRng, seq::IteratorRandom, Rng};
+use rand::{seq::IteratorRandom, Rng, RngCore};
 use rand_distr::StandardNormal;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, fs, path::Path};
@@ -92,7 +92,7 @@ impl Genome {
         )
     }
 
-    pub fn mutate_weights(&mut self, rng: &mut ThreadRng) {
+    pub fn mutate_weights(&mut self, rng: &mut impl RngCore) {
         for conn in self.connections.iter_mut() {
             if rng.random_ratio(1, 10) {
                 conn.weight = rng.sample(StandardNormal);
@@ -106,7 +106,7 @@ impl Genome {
     // fails if no pair can be picked
     pub fn mutate_connection(
         &mut self,
-        rng: &mut ThreadRng,
+        rng: &mut impl RngCore,
         inext: &mut InnoGen,
     ) -> Result<(), Box<dyn Error>> {
         if let Some((from, to)) = gen_connection(self, rng) {
@@ -127,7 +127,7 @@ impl Genome {
     // picked source connection is marked as disabled
     pub fn mutate_bisection(
         &mut self,
-        rng: &mut ThreadRng,
+        rng: &mut impl RngCore,
         inext: &mut InnoGen,
     ) -> Result<(), Box<dyn Error>> {
         if self.connections.is_empty() {
@@ -168,7 +168,7 @@ impl Genome {
 
     pub fn maybe_mutate(
         &mut self,
-        rng: &mut ThreadRng,
+        rng: &mut impl RngCore,
         innogen: &mut InnoGen,
     ) -> Result<(), Box<dyn Error>> {
         if rng.random_bool(CHANCE_MUTATE_WEIGHT) {
@@ -184,7 +184,12 @@ impl Genome {
         Ok(())
     }
 
-    pub fn reproduce_with(&self, other: &Genome, self_fit: Ordering, rng: &mut ThreadRng) -> Self {
+    pub fn reproduce_with(
+        &self,
+        other: &Genome,
+        self_fit: Ordering,
+        rng: &mut impl RngCore,
+    ) -> Self {
         let connections = crossover(&self.connections, &other.connections, self_fit, rng);
         let nodes_size = connections
             .iter()
@@ -223,7 +228,7 @@ impl Genome {
 /// Given a genome with 0 or more nodes, try to generate a connection between nodes
 /// a connection should have a unique (from, to) from any other connection on genome,
 /// and the connection should not describe a node that points to itself
-fn gen_connection(genome: &Genome, rng: &mut ThreadRng) -> Option<(usize, usize)> {
+fn gen_connection(genome: &Genome, rng: &mut impl RngCore) -> Option<(usize, usize)> {
     let mut saturated = HashSet::new();
     loop {
         let from = (0..genome.nodes.len())
@@ -251,7 +256,7 @@ fn gen_connection(genome: &Genome, rng: &mut ThreadRng) -> Option<(usize, usize)
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::specie::InnoGen;
+    use crate::{random::default_rng, specie::InnoGen};
     use std::vec;
 
     #[test]
@@ -300,7 +305,7 @@ mod test {
             connections: vec![],
         };
         for _ in 0..100 {
-            match gen_connection(&genome, &mut rand::rng()) {
+            match gen_connection(&genome, &mut default_rng()) {
                 Some((0, o)) | Some((o, 0)) => assert_eq!(o, 1),
                 Some(p) => unreachable!("invalid pair {p:?} gen'd"),
                 None => unreachable!("no path gen'd"),
@@ -323,7 +328,7 @@ mod test {
             }],
         };
         for _ in 0..100 {
-            assert_eq!(gen_connection(&genome, &mut rand::rng()), Some((1, 0)));
+            assert_eq!(gen_connection(&genome, &mut default_rng()), Some((1, 0)));
         }
     }
 
@@ -343,7 +348,7 @@ mod test {
                         enabled: true,
                     }],
                 },
-                &mut rand::rng()
+                &mut default_rng()
             ),
             None
         );
@@ -377,7 +382,7 @@ mod test {
                         })
                         .collect(),
                 },
-                &mut rand::rng()
+                &mut default_rng()
             ),
             None
         )
@@ -406,7 +411,7 @@ mod test {
 
         let before = genome.clone();
         genome
-            .mutate_connection(&mut rand::rng(), &mut inext)
+            .mutate_connection(&mut default_rng(), &mut inext)
             .unwrap();
 
         assert_eq!(genome.connections.len(), before.connections.len() + 1);
@@ -431,7 +436,9 @@ mod test {
             enabled: true,
         }];
         let innogen = &mut InnoGen::new(1);
-        genome.mutate_bisection(&mut rand::rng(), innogen).unwrap();
+        genome
+            .mutate_bisection(&mut default_rng(), innogen)
+            .unwrap();
 
         assert!(!genome.connections[0].enabled);
 
@@ -461,7 +468,7 @@ mod test {
     #[test]
     fn test_mutate_bisection_empty_genome() {
         let (mut genome, _) = Genome::new(0, 0);
-        let result = genome.mutate_bisection(&mut rand::rng(), &mut InnoGen::new(0));
+        let result = genome.mutate_bisection(&mut default_rng(), &mut InnoGen::new(0));
         assert!(result.is_err());
     }
 
@@ -469,7 +476,7 @@ mod test {
     fn test_mutate_bisection_no_connections() {
         let (mut genome, _) = Genome::new(2, 2);
         genome.connections = vec![];
-        let result = genome.mutate_bisection(&mut rand::rng(), &mut InnoGen::new(0));
+        let result = genome.mutate_bisection(&mut default_rng(), &mut InnoGen::new(0));
         assert!(result.is_err());
     }
 

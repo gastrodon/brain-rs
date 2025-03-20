@@ -4,7 +4,7 @@ use crate::{
 };
 use core::{error::Error, f64};
 use fxhash::FxHashMap;
-use rand::rngs::ThreadRng;
+use rand::RngCore;
 use std::{
     collections::HashMap,
     hash::{DefaultHasher, Hash, Hasher},
@@ -120,7 +120,7 @@ impl Specie {
 fn reproduce_crossover(
     genomes: &[(Genome, f64)],
     size: usize,
-    rng: &mut ThreadRng,
+    rng: &mut impl RngCore,
     innogen: &mut InnoGen,
 ) -> Result<Vec<Genome>, Box<dyn Error>> {
     if size == 0 {
@@ -171,7 +171,7 @@ fn reproduce_crossover(
 fn reproduce_copy(
     genomes: &[(Genome, f64)],
     size: usize,
-    rng: &mut ThreadRng,
+    rng: &mut impl RngCore,
     innogen: &mut InnoGen,
 ) -> Result<Vec<Genome>, Box<dyn Error>> {
     if size == 0 {
@@ -203,7 +203,7 @@ pub fn reproduce(
     genomes: Vec<(Genome, f64)>,
     size: usize,
     innogen: &mut InnoGen,
-    rng: &mut ThreadRng,
+    rng: &mut impl RngCore,
 ) -> Result<Vec<Genome>, Box<dyn Error>> {
     if size == 0 {
         return Ok(vec![]);
@@ -322,7 +322,7 @@ pub fn population_reproduce(
     species: &[(Specie, f64)],
     population: usize,
     inno_head: usize,
-    rng: &mut ThreadRng,
+    rng: &mut impl RngCore,
 ) -> (Vec<Genome>, usize) {
     // let species = population_viable(species.into_iter());
     // let species_pop = population_alloc(species, population);
@@ -367,7 +367,7 @@ pub fn speciate(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::rng;
+    use crate::random::default_rng;
 
     #[test]
     fn test_inno_gen() {
@@ -407,7 +407,7 @@ mod tests {
 
     #[test]
     fn test_specie_reproduce() {
-        let mut rng = rng();
+        let mut rng = default_rng();
         let count = 40;
         let (species, inno_head) = population_init(2, 2, count);
 

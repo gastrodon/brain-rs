@@ -160,7 +160,7 @@ impl Network for Ctrnn {
 #[cfg(test)]
 mod test {
     use super::*;
-    use rand::rng;
+    use crate::random::default_rng;
     use rand_distr::{num_traits::Float, Distribution, Uniform};
 
     // Macro for comparing f64 arrays with epsilon tolerance
@@ -185,7 +185,7 @@ mod test {
     #[test]
     fn test_ctrnn_serialization_deserialization() {
         let n_neurons = 10;
-        let mut rng = rng();
+        let mut rng = default_rng();
         let dist = Uniform::new(-10., 10.).unwrap();
 
         let mut y_data = vec![0.0; n_neurons];
@@ -228,7 +228,7 @@ mod test {
     #[test]
     fn test_ctrnn_behavioral_equivalence() {
         let n_neurons = 10;
-        let mut rng = rng();
+        let mut rng = default_rng();
         let dist = Uniform::new(-10., 10.).unwrap();
 
         let mut y_data = vec![0.0; n_neurons];

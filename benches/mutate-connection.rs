@@ -1,6 +1,5 @@
-use brain::{specie::InnoGen, Genome};
+use brain::{random::default_rng, specie::InnoGen, Genome};
 use criterion::Criterion;
-use rand::rng;
 
 fn bench(bench: &mut Criterion) {
     let genome = Genome::from_str(include_str!("data/genome-rand-100.json")).unwrap();
@@ -8,7 +7,7 @@ fn bench(bench: &mut Criterion) {
         b.iter(|| {
             genome
                 .clone()
-                .mutate_connection(&mut rng(), &mut InnoGen::new(300))
+                .mutate_connection(&mut default_rng(), &mut InnoGen::new(300))
                 .unwrap()
         })
     });

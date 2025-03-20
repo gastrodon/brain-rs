@@ -1,9 +1,9 @@
 use crate::{
+    random::default_rng,
     specie::{population_reproduce, speciate, Specie, SpecieRepr},
     Genome,
 };
 use core::f64;
-use rand::rng;
 use std::collections::HashMap;
 
 const NO_IMPROVEMENT_TRUNCATE: usize = 10;
@@ -53,7 +53,7 @@ pub trait Scenario {
 
         let mut scores: HashMap<SpecieRepr, _> = HashMap::new();
 
-        let mut rng = rng();
+        let mut rng = default_rng();
         let mut gen_idx = 0;
         loop {
             let species = {

@@ -1,4 +1,4 @@
-use rand::RngCore;
+use rand::{rng, RngCore};
 use std::{
     fs::File,
     io::{self, Read},
@@ -76,6 +76,10 @@ pub fn rng_wyhash(seed: u64) -> impl FnMut() -> u64 {
         let t = u128::from(state) * u128::from(state ^ WY_CONST_1);
         (t as u64) ^ (t >> 64) as u64
     }
+}
+
+pub fn default_rng() -> impl RngCore {
+    rng()
 }
 
 #[cfg(test)]

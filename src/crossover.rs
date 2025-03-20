@@ -3,7 +3,7 @@ use crate::{
     random::{CHANCE_KEEP_DISABLED, CHANCE_NEW_DISABLED, CHANCE_PICK_L_EQ},
 };
 use core::cmp::Ordering;
-use rand::{rngs::ThreadRng, Rng};
+use rand::{Rng, RngCore};
 
 pub fn disjoint_excess_count(l: &[Connection], r: &[Connection]) -> (f64, f64) {
     let mut l_iter = l.iter();
@@ -140,7 +140,7 @@ pub fn delta(l: &[Connection], r: &[Connection]) -> f64 {
 fn pick_gene(
     base_conn: &Connection,
     opt_conn: Option<&Connection>,
-    rng: &mut ThreadRng,
+    rng: &mut impl RngCore,
 ) -> Connection {
     let mut conn = if let Some(r_conn) = opt_conn {
         (*if rng.random_bool(CHANCE_PICK_L_EQ) {
@@ -167,7 +167,7 @@ fn pick_gene(
 }
 
 /// crossover connections where l and r are equally fit
-fn crossover_eq(l: &[Connection], r: &[Connection], rng: &mut ThreadRng) -> Vec<Connection> {
+fn crossover_eq(l: &[Connection], r: &[Connection], rng: &mut impl RngCore) -> Vec<Connection> {
     // TODO I wonder what the actual average case overlap between genomes is?
     // probably pretty close, could we measure this?
     let mut cross = Vec::with_capacity(l.len() + r.len());
@@ -208,7 +208,7 @@ fn crossover_eq(l: &[Connection], r: &[Connection], rng: &mut ThreadRng) -> Vec<
 }
 
 /// crossover connections where l is more fit than r
-fn crossover_ne(l: &[Connection], r: &[Connection], rng: &mut ThreadRng) -> Vec<Connection> {
+fn crossover_ne(l: &[Connection], r: &[Connection], rng: &mut impl RngCore) -> Vec<Connection> {
     // copy l, pick_gene where l.inno == r.inno
     let mut cross = Vec::with_capacity(l.len());
     let mut r_idx = 0;
@@ -237,7 +237,7 @@ pub fn crossover(
     l: &[Connection],
     r: &[Connection],
     l_fit: Ordering,
-    rng: &mut ThreadRng,
+    rng: &mut impl RngCore,
 ) -> Vec<Connection> {
     let mut usort = match l_fit {
         Ordering::Equal => crossover_eq(l, r, rng),
@@ -252,8 +252,7 @@ pub fn crossover(
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::genome::Connection;
-    use rand::rng;
+    use crate::{genome::Connection, random::default_rng};
     use std::collections::{HashMap, HashSet};
 
     macro_rules! connection {
@@ -475,7 +474,7 @@ mod test {
                 .collect::<HashSet<_>>();
 
             for _ in 0..1000 {
-                let lr = crossover_eq(l, r, &mut rng());
+                let lr = crossover_eq(l, r, &mut default_rng());
                 assert_eq!(inno.len(), lr.len());
 
                 let lr_inno = lr.iter().map(|c| c.inno).collect::<HashSet<_>>();
@@ -543,7 +542,7 @@ mod test {
         ];
         let r = [connection!(inno = 1, from = 2_1)];
         for _ in 0..1000 {
-            let lr = crossover_eq(&l, &r, &mut rng());
+            let lr = crossover_eq(&l, &r, &mut default_rng());
             assert_eq!(lr.len(), 2);
             assert_from_connection!(lr[0], l[0]);
             assert_from_connection!(lr[1], r[0], "not from r_0");
@@ -559,7 +558,7 @@ mod test {
             connection!(inno = 1, from = 1_2),
         ];
         for _ in 0..1000 {
-            let lr = crossover_eq(&l, &r, &mut rng());
+            let lr = crossover_eq(&l, &r, &mut default_rng());
             assert_eq!(lr.len(), 2);
             assert_from_connection!(lr[0], r[0]);
             assert_from_connection!(lr[1], l[0], "not from l_0");
@@ -578,7 +577,7 @@ mod test {
             connection!(inno = 1, from = 2_2),
         ];
         for _ in 0..1000 {
-            let lr = crossover_eq(&l, &r, &mut rng());
+            let lr = crossover_eq(&l, &r, &mut default_rng());
             assert_eq!(lr.len(), 2);
             assert_from_connection!(lr[0], (l[0], r[0]));
             assert_from_connection!(lr[1], l[1], "not from l_1");
@@ -597,7 +596,7 @@ mod test {
             connection!(inno = 1, from = 2_2),
         ];
         for _ in 0..1000 {
-            let lr = crossover_eq(&l, &r, &mut rng());
+            let lr = crossover_eq(&l, &r, &mut default_rng());
             assert_eq!(lr.len(), 2);
             assert_from_connection!(lr[0], (l[0], r[0]));
             assert_from_connection!(lr[1], r[1], "not from r_1");
@@ -615,7 +614,7 @@ mod test {
                 .collect::<HashSet<_>>();
 
             for _ in 0..1000 {
-                let lr = crossover_ne(l, r, &mut rng());
+                let lr = crossover_ne(l, r, &mut default_rng());
                 assert_eq!(lr.len(), l.len());
 
                 let lr_inno = lr.iter().map(|c| c.inno).collect::<HashSet<_>>();
@@ -732,9 +731,9 @@ mod test {
         ];
 
         assert_crossover_ne(&l, &r);
-        for (le, ge) in crossover(&l, &r, Ordering::Less, &mut rng())
+        for (le, ge) in crossover(&l, &r, Ordering::Less, &mut default_rng())
             .iter()
-            .zip(crossover_ne(&r, &l, &mut rng()))
+            .zip(crossover_ne(&r, &l, &mut default_rng()))
         {
             assert_eq!(le.inno, ge.inno);
         }
