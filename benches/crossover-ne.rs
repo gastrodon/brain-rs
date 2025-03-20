@@ -8,8 +8,9 @@ fn bench(bench: &mut Criterion) {
     let r_conn =
         serde_json::from_str::<Vec<_>>(include_str!("data/connection-rand-r.json")).unwrap();
 
+    let mut rng = default_rng();
     bench.bench_function("crossover-ne", |b| {
-        b.iter(|| crossover(&l_conn, &r_conn, Ordering::Greater, &mut default_rng()))
+        b.iter(|| crossover(&l_conn, &r_conn, Ordering::Greater, &mut rng))
     });
 }
 

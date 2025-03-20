@@ -3,11 +3,12 @@ use criterion::Criterion;
 
 fn bench(bench: &mut Criterion) {
     let genome = Genome::from_str(include_str!("data/genome-rand-100.json")).unwrap();
+    let mut rng = default_rng();
     bench.bench_function("mutate-connection", |b| {
         b.iter(|| {
             genome
                 .clone()
-                .mutate_connection(&mut default_rng(), &mut InnoGen::new(300))
+                .mutate_connection(&mut rng, &mut InnoGen::new(300))
                 .unwrap()
         })
     });
