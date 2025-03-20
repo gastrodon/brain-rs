@@ -1,10 +1,10 @@
 use brain::random::{rng_rngcore, rng_wyhash, seed_urandom};
 use criterion::Criterion;
-use rand::rng;
+use rand::rngs::ThreadRng;
 
 fn bench_rngcore(bench: &mut Criterion) {
-    bench.bench_function("random-rngcore", |b| {
-        let next_u64 = rng_rngcore(rng());
+    bench.bench_function("random-threadrng", |b| {
+        let next_u64 = rng_rngcore(ThreadRng::default());
         b.iter(next_u64);
     });
 }
