@@ -1,20 +1,31 @@
-use brain::random::{rng_rngcore, rng_wyhash, seed_urandom};
+use brain::random::{seed_urandom, WyRng};
 use criterion::Criterion;
-use rand::rngs::ThreadRng;
+use rand::{
+    rngs::{SmallRng, ThreadRng},
+    RngCore, SeedableRng,
+};
 
-fn bench_rngcore(bench: &mut Criterion) {
+fn bench_threadrng(bench: &mut Criterion) {
+    let mut rng = ThreadRng::default();
+
     bench.bench_function("random-threadrng", |b| {
-        let next_u64 = rng_rngcore(ThreadRng::default());
-        b.iter(next_u64);
+        b.iter(|| rng.next_u64());
+    });
+}
+
+fn bench_smallrng(bench: &mut Criterion) {
+    let mut rng = SmallRng::seed_from_u64(seed_urandom().unwrap());
+
+    bench.bench_function("random-smallrng", |b| {
+        b.iter(|| rng.next_u64());
     });
 }
 
 fn bench_wyhash(bench: &mut Criterion) {
-    let seed = seed_urandom().unwrap();
+    let mut rng = WyRng::seeded(seed_urandom().unwrap());
 
     bench.bench_function("random-wyhash", |b| {
-        let next_u64 = rng_wyhash(seed);
-        b.iter(next_u64);
+        b.iter(|| rng.next_u64());
     });
 }
 
@@ -33,7 +44,8 @@ pub fn benches() {
             .without_plots()
             .configure_from_args()
     };
-    bench_rngcore(&mut criterion);
+    bench_threadrng(&mut criterion);
+    bench_smallrng(&mut criterion);
     bench_wyhash(&mut criterion);
 }
 
